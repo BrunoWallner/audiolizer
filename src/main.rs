@@ -13,7 +13,12 @@ mod ui;
 use ui::bars::*;
 use ui::sliders::*;
 
+use gag::Gag;
+
 pub fn main() -> iced::Result {
+    // dont print any alsa or jack errors on *nix systems to stderr
+    let _print_gag = Gag::stderr().unwrap();
+    
     Visual::run(Settings {
         antialiasing: true,
         ..Settings::default()
@@ -29,14 +34,14 @@ struct Visual {
     show_sliders: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Message {
     SliderMessage(SliderMessage),
     Update,
     ToggleSliders,
 }
 
-impl Application for Visual {
+impl Application for Visual{
     type Executor = executor::Default;
     type Message = Message;
     type Flags = ();
@@ -54,14 +59,15 @@ impl Application for Visual {
             config,
         );
         let event_sender = audio_stream.get_event_sender();
-        init_audio_sender(event_sender.clone(), audio_device);
+        let (device_tx, device_rx) = mpsc::channel();
+        init_audio_sender(event_sender.clone(), audio_device, device_rx);
         
         (
             Visual {
                 theme: Default::default(),
                 //bars: Bars {data: Vec::new(), ..Default::default()},
                 bars: Default::default(),
-                sliders: Sliders::new(event_sender.clone(), style::Theme::default(), config),
+                sliders: Sliders::new(event_sender.clone(), style::Theme::default(), config, device_tx),
                 event_sender,
                 toggle_button_state: button::State::new(),
                 show_sliders: false,
