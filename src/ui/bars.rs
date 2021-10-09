@@ -27,7 +27,7 @@ impl Default for Bars {
         Bars {
             data: Vec::new(),
             cache: Cache::new(),
-            mirroring: false,
+            mirroring: true,
         }
     }
 }

@@ -9,6 +9,6 @@ edition = "2021"
 iced = { git = "https://github.com/iced-rs/iced", features = ["canvas", "tokio", "debug"] }
 gag = "1.0.0"
 colored = "2.0.0"
-cpal = { version = "0.13.4", features = ["wasm-bindgen"] }
+cpal = "0.13.4"
 wasm-bindgen = "0.2.45"
-audioviz = { path = "../audioviz" }
+audioviz = "0.1.3"
