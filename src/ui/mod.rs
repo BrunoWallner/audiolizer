@@ -1,2 +1,2 @@
 pub mod bars;
-pub mod sliders;
+pub mod settings;

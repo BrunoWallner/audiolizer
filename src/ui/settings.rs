@@ -8,7 +8,7 @@ use crate::style;
 use crate::audio::AudioDevice;
 
 #[derive(Debug, Clone)]
-pub enum SliderMessage {
+pub enum SettingMessage {
     DensityReduction(f32),
     Volume(f32),
     Buffering(f32),
@@ -20,7 +20,7 @@ pub enum SliderMessage {
     AudioDeviceChanged(AudioDevice),
 }
 
-pub struct Sliders {
+pub struct Settings {
     theme: style::Theme,
     event_sender: mpsc::Sender<audioviz::Event>,
     scrollable: scrollable::State,
@@ -49,10 +49,10 @@ pub struct Sliders {
     buffering_s: slider::State,
     buffering_sv: f32,
 }
-impl Sliders {
+impl Settings {
     pub fn new(event_sender: mpsc::Sender<audioviz::Event>, theme: style::Theme, config: audioviz::Config, audio_device_sender: mpsc::Sender<AudioDevice>) -> Self {
         let (input_devices, output_devices) = crate::audio::iter_audio_devices();
-        Sliders {
+        Settings {
             theme,
             event_sender,
             scrollable: scrollable::State::new(),
@@ -66,7 +66,7 @@ impl Sliders {
             mirroring_checkbox: true,
 
             volume_s: slider::State::new(),
-            volume_sv: config.volume as f32,
+            volume_sv: config.volume.sqrt(),
             density_reduction_s: slider::State::new(),
             density_reduction_sv: config.density_reduction as f32,
             smoothing_size_s: slider::State::new(),
@@ -78,23 +78,23 @@ impl Sliders {
         }
     }
 
-    pub fn update(&mut self, msg: SliderMessage) {
+    pub fn update(&mut self, msg: SettingMessage) {
         let (tx, rx) = mpsc::channel();
         self.event_sender.send(audioviz::Event::RequestConfig(tx)).unwrap();
         let config = rx.recv().unwrap();
 
         match msg {
-            SliderMessage::Volume(v) => {
+            SettingMessage::Volume(v) => {
                 self.volume_sv = v;
                 if config.volume != v {
                     let config = audioviz::Config {
-                        volume: v,
+                        volume: v.powi(2),
                         ..config
                     };
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
                 } 
             }
-            SliderMessage::DensityReduction(v) => {
+            SettingMessage::DensityReduction(v) => {
                 self.density_reduction_sv = v;
                 let v = v as usize;
                 if config.density_reduction != v {
@@ -106,7 +106,7 @@ impl Sliders {
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
                 }
             }
-            SliderMessage::Buffering(v) => {
+            SettingMessage::Buffering(v) => {
                 self.buffering_sv = v;
                 let v = v as usize;
                 if config.buffering != v {
@@ -117,7 +117,7 @@ impl Sliders {
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
                 } 
             }
-            SliderMessage::SmoothingSize(v) => {
+            SettingMessage::SmoothingSize(v) => {
                 self.smoothing_size_sv = v;
                 let v = v as usize;
                 if config.buffering != v {
@@ -128,7 +128,7 @@ impl Sliders {
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
                 } 
             }
-            SliderMessage::SmoothingAmount(v) => {
+            SettingMessage::SmoothingAmount(v) => {
                 self.smoothing_amount_sv = v;
                 let v = v as usize;
                 if config.buffering != v {
@@ -139,29 +139,29 @@ impl Sliders {
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
                 } 
             }
-            SliderMessage::ThemeChanged(t) => {
+            SettingMessage::ThemeChanged(t) => {
                 self.theme = t;
             }
-            SliderMessage::Mirroring(b) => {
+            SettingMessage::Mirroring(b) => {
                 self.mirroring_checkbox = b;
             }
-            SliderMessage::UpdateAudioDevices => {
+            SettingMessage::UpdateAudioDevices => {
                 let (i, o) = crate::audio::iter_audio_devices();
                 self.input_devices = i;
                 self.output_devices = o;
             }
-            SliderMessage::AudioDeviceChanged(d) => {
+            SettingMessage::AudioDeviceChanged(d) => {
                 self.audio_device = d;
                 self.audio_device_sender.send(d).unwrap();
             }
         }
     }
 
-    pub fn view(&mut self) -> Element<crate::SliderMessage> {
+    pub fn view(&mut self) -> Element<SettingMessage> {
         let mirroring_checkbox = Checkbox::new(
                 self.mirroring_checkbox,
                 String::from("mirroring"),
-                SliderMessage::Mirroring,
+                SettingMessage::Mirroring,
             )
             .style(self.theme);
 
@@ -169,28 +169,28 @@ impl Sliders {
                 &mut self.device_refresh_button,
                 Text::new("refresh").horizontal_alignment(alignment::Horizontal::Center),
             )
-            .on_press(SliderMessage::UpdateAudioDevices)
+            .on_press(SettingMessage::UpdateAudioDevices)
             .style(self.theme);
 
         let d_r_slider = slider::Slider::new(
             &mut self.density_reduction_s, 
             0.0..=20.0, 
             self.density_reduction_sv, 
-            SliderMessage::DensityReduction)
+            SettingMessage::DensityReduction)
             .style(self.theme);
 
         let volume_slider = slider::Slider::new(
             &mut self.volume_s, 
             0.0..=100.0, 
             self.volume_sv, 
-            SliderMessage::Volume)
+            SettingMessage::Volume)
             .style(self.theme);
         
         let buffering_slider = slider::Slider::new(
                 &mut self.buffering_s, 
                 0.0..=20.0, 
                 self.buffering_sv, 
-                SliderMessage::Buffering
+                SettingMessage::Buffering
             )
             .style(self.theme);
 
@@ -198,7 +198,7 @@ impl Sliders {
                 &mut self.smoothing_size_s,
                 0.0..=20.0, 
                 self.smoothing_size_sv, 
-                SliderMessage::SmoothingSize
+                SettingMessage::SmoothingSize
             )
             .style(self.theme);
 
@@ -207,7 +207,7 @@ impl Sliders {
                 &mut self.smoothing_amount_s,
                 0.0..=20.0, 
                 self.smoothing_amount_sv, 
-                SliderMessage::SmoothingAmount
+                SettingMessage::SmoothingAmount
             )
             .style(self.theme);
 
@@ -245,10 +245,10 @@ impl Sliders {
             .push(Text::new("Smoothing Amount").width(Length::FillPortion(1)))
             .push(smoothing_amount_slider.width(Length::FillPortion(5)));
 
-        let light_radio = Radio::new(style::Theme::Light, "Light", Some(self.theme), SliderMessage::ThemeChanged)
+        let light_radio = Radio::new(style::Theme::Light, "Light", Some(self.theme), SettingMessage::ThemeChanged)
             .style(self.theme);
 
-        let dark_radio = Radio::new(style::Theme::Dark, "Dark", Some(self.theme), SliderMessage::ThemeChanged)
+        let dark_radio = Radio::new(style::Theme::Dark, "Dark", Some(self.theme), SettingMessage::ThemeChanged)
             .style(self.theme);
 
         let theme_selection = Row::new()
@@ -262,7 +262,8 @@ impl Sliders {
             .spacing(5);
         for (i, name) in self.output_devices.iter().enumerate() {
             output_device_selection = output_device_selection.push(
-                Radio::new(AudioDevice::Output(i), name, Some(self.audio_device), SliderMessage::AudioDeviceChanged)
+                Radio::new(AudioDevice::Output(i), name, Some(self.audio_device), SettingMessage::AudioDeviceChanged)
+                    .style(self.theme)
             )
         };
 
@@ -271,20 +272,22 @@ impl Sliders {
             .spacing(5);
         for (i, name) in self.input_devices.iter().enumerate() {
             input_device_selection = input_device_selection.push(
-                Radio::new(AudioDevice::Input(i), name, Some(self.audio_device), SliderMessage::AudioDeviceChanged)
+                Radio::new(AudioDevice::Input(i), name, Some(self.audio_device), SettingMessage::AudioDeviceChanged)
+                    .style(self.theme)
             )
         };
 
         let device_selection = Row::new()
             .padding(5)
             .spacing(2)
-            .align_items(Alignment::Center)
+            .align_items(Alignment::Start)
             .push(output_device_selection)
             .push(input_device_selection);
 
         let device_selection = Column::new()
             .padding(5)
             .spacing(2)
+            .align_items(Alignment::Center)
             .push(device_refresh_button)
             .push(device_selection);
 

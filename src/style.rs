@@ -350,7 +350,7 @@ mod light {
             checkbox::Style {
                 background: if is_checked { ACTIVE } else { SURFACE }
                     .into(),
-                checkmark_color: Color::BLACK,
+                checkmark_color: Color::WHITE,
                 border_radius: 2.0,
                 border_width: 1.0,
                 border_color: ACTIVE,
@@ -419,9 +419,9 @@ mod dark {
     };
 
     const SURFACE: Color = Color::from_rgb(
-        0x40 as f32 / 255.0,
-        0x44 as f32 / 255.0,
-        0x4B as f32 / 255.0,
+        0x21 as f32 / 255.0,
+        0x21 as f32 / 255.0,
+        0x21 as f32 / 255.0,
     );
 
     const ACCENT: Color = Color::from_rgb(
@@ -431,9 +431,9 @@ mod dark {
     );
 
     const ACTIVE: Color = Color::from_rgb(
-        0x7e as f32 / 255.0,
-        0x3f as f32 / 255.0,
-        0xf2 as f32 / 255.0,
+        0x84 as f32 / 255.0,
+        0x4c as f32 / 255.0,
+        0xb5 as f32 / 255.0,
     );
 
     const HOVERED: Color = Color::from_rgb(

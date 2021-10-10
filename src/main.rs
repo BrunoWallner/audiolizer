@@ -1,8 +1,10 @@
 use iced::{
     executor, time, Application, Command, Container, Element, Length, alignment,
-    Settings, Subscription, button, Text, Alignment,
+    Subscription, button, Text, Alignment,
+    window::icon,
 };
 use std::sync::mpsc;
+
 
 use audioviz;
 mod audio;
@@ -11,24 +13,35 @@ mod style;
 
 mod ui;
 use ui::bars::*;
-use ui::sliders::*;
+use ui::settings::{SettingMessage, Settings};
 
 use gag::Gag;
 
 pub fn main() -> iced::Result {
     // dont print any alsa or jack errors on *nix systems to stderr
     let _print_gag = Gag::stderr().unwrap();
+
+    let image = include_bytes!("../media/icon.png");
+    let image = image::load_from_memory(image).unwrap().to_rgba8();
+    let rgba: Vec<u8> = image.as_raw().to_vec();
+
+    let icon = icon::Icon::from_rgba(rgba, 1024, 1024).unwrap();
     
-    Visual::run(Settings {
+    Visual::run(iced::Settings {
         antialiasing: true,
-        ..Settings::default()
+        window: iced::window::Settings {
+            icon: Some(icon),
+            min_size: Some((500, 0)),
+            ..iced::window::Settings::default()
+        },
+        ..iced::Settings::default()
     })
 }
 
 struct Visual {
     theme: style::Theme,
     bars: Bars,
-    sliders: Sliders,
+    settings: Settings,
     event_sender: mpsc::Sender<audioviz::Event>,
     toggle_button_state: button::State,
     show_sliders: bool,
@@ -36,7 +49,7 @@ struct Visual {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    SliderMessage(SliderMessage),
+    SliderMessage(SettingMessage),
     Update,
     ToggleSliders,
 }
@@ -67,7 +80,7 @@ impl Application for Visual{
                 theme: Default::default(),
                 //bars: Bars {data: Vec::new(), ..Default::default()},
                 bars: Default::default(),
-                sliders: Sliders::new(event_sender.clone(), style::Theme::default(), config, device_tx),
+                settings: Settings::new(event_sender.clone(), style::Theme::default(), config, device_tx),
                 event_sender,
                 toggle_button_state: button::State::new(),
                 show_sliders: false,
@@ -77,7 +90,7 @@ impl Application for Visual{
     }
 
     fn title(&self) -> String {
-        String::from("Audiovis")
+        String::from("Audiolizer")
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -99,16 +112,16 @@ impl Application for Visual{
             },
             Message::SliderMessage(msg) => {
                 match msg {
-                    SliderMessage::ThemeChanged(t) => {
+                    SettingMessage::ThemeChanged(t) => {
                         self.theme = t;
-                        self.sliders.update(msg)
+                        self.settings.update(msg)
                     }
-                    SliderMessage::Mirroring(v) => {
+                    SettingMessage::Mirroring(v) => {
                         self.bars.mirroring = v;
-                        self.sliders.update(msg)
+                        self.settings.update(msg)
                     }
                     _ => {
-                        self.sliders.update(msg)
+                        self.settings.update(msg)
                     }
                 }
             },
@@ -152,7 +165,7 @@ impl Application for Visual{
 
         if self.show_sliders {
             content = content.push(
-                self.sliders.view()
+                self.settings.view()
                     .map(Message::SliderMessage)
             );
         }

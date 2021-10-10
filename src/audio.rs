@@ -45,7 +45,7 @@ pub fn init_audio_sender(event_sender: mpsc::Sender<audioviz::Event>, mut audio_
         };
         audio_device = match audio_device_receiver.recv() {
             Ok(v) => v,
-            Err(_) => std::process::exit(0)
+            Err(_) => break
         };
     });
 }
