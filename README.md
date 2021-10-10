@@ -1,5 +1,5 @@
 # audiolizer
-A audiovisualizer written in pure Rust with the help of [audiovis](https://github.com/BrunoWallner/audiovis) and [iced](https://github.com/iced-rs/iced)
+A audiovisualizer written in pure Rust with the help of [audioviz](https://github.com/BrunoWallner/audioviz) and [iced](https://github.com/iced-rs/iced)
 
 ## demo
 visualisation              |  settings
