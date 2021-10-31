@@ -9,7 +9,7 @@ use std::sync::mpsc;
 use audioviz;
 mod audio;
 use audio::*;
-mod style;
+mod theme;
 
 mod ui;
 use ui::bars::*;
@@ -39,7 +39,7 @@ pub fn main() -> iced::Result {
 }
 
 struct Visual {
-    theme: style::Theme,
+    theme: theme::Theme,
     bars: Bars,
     settings: Settings,
     event_sender: mpsc::Sender<audioviz::Event>,
@@ -62,14 +62,10 @@ impl Application for Visual{
     fn new(_flags: ()) -> (Self, Command<Message>) {
         let audio_device = AudioDevice::Output(0);
         let config = audioviz::Config {
-            volume: 100.0,
-            max_frequency: 20_000,
-            frequency_scale_amount: 1,
-            frequency_scale_range: [0, 100],
             ..Default::default()
         };
         let audio_stream = audioviz::AudioStream::init(
-            config,
+            config.clone(),
         );
         let event_sender = audio_stream.get_event_sender();
         let (device_tx, device_rx) = mpsc::channel();
@@ -80,7 +76,7 @@ impl Application for Visual{
                 theme: Default::default(),
                 //bars: Bars {data: Vec::new(), ..Default::default()},
                 bars: Default::default(),
-                settings: Settings::new(event_sender.clone(), style::Theme::default(), config, device_tx),
+                settings: Settings::new(event_sender.clone(), theme::Theme::default(), config, device_tx),
                 event_sender,
                 toggle_button_state: button::State::new(),
                 show_sliders: false,
@@ -120,6 +116,10 @@ impl Application for Visual{
                         self.bars.mirroring = v;
                         self.settings.update(msg)
                     }
+                    SettingMessage::BarWidthChanged(w) => {
+                        self.bars.width = w;
+                        self.settings.update(msg);
+                    }
                     _ => {
                         self.settings.update(msg)
                     }
@@ -131,7 +131,7 @@ impl Application for Visual{
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        time::every(std::time::Duration::from_millis(10))
+        time::every(std::time::Duration::from_millis(1_000 / self.settings.bar_rr_sv as u64))
             .map(|_| Message::Update)
     }
 

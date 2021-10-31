@@ -11,6 +11,6 @@ iced = { git = "https://github.com/iced-rs/iced", features = ["canvas", "tokio",
 gag = "1.0.0"
 colored = "2.0.0"
 cpal = "0.13.4"
-wasm-bindgen = "0.2.45"
-audioviz = "0.1.4"
+#audioviz = "0.2.0"
+audioviz = { git = "https://github.com/BrunoWallner/audioviz", branch = "main" }
 image = "0.23.14"

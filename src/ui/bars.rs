@@ -9,6 +9,10 @@ pub struct Bars {
     pub data: Vec<f32>,
     pub cache: Cache,
     pub mirroring: bool,
+    pub width: f32,
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
 
 impl Bars {
@@ -28,6 +32,10 @@ impl Default for Bars {
             data: Vec::new(),
             cache: Cache::new(),
             mirroring: true,
+            width: 10.0,
+            r: 255,
+            g: 0,
+            b: 0,
         }
     }
 }
@@ -43,9 +51,9 @@ impl canvas::Program<Message> for Bars {
                 if y < 0.0 {
                     y = 1.0;
                 }
-                let size_x: f32 = frame.size().width / self.data.len() as f32;
+                let size_x: f32 = frame.size().width / self.data.len() as f32 * self.width * 0.1;
                 let size_y: f32 = self.data[i] * 100.0_f32;
-                frame.fill_rectangle(Point::new(x, y), Size::new(size_x, size_y), Color::from_rgb8(255, 0, 0));
+                frame.fill_rectangle(Point::new(x, y), Size::new(size_x, size_y), Color::from_rgb8(self.r, self.g, self.b));
             }
 
             frame.translate(Vector::new(center.x, center.y));
