@@ -119,11 +119,13 @@ dependencies = [
 
 [[package]]
 name = "audioviz"
-version = "0.2.0"
-source = "git+https://github.com/BrunoWallner/audioviz?branch=main#b8b838bbf84ce72c63ec2599e50fe6b45e2fda39"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47198e4e9554b0f8f9d6cf9215353b7f6d9be3b158a9d9d178bdca5e5975456d"
 dependencies = [
  "apodize",
  "rustfft",
+ "serde",
  "splines",
 ]
 
@@ -2350,6 +2352,20 @@ name = "serde"
 version = "1.0.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f12d06de37cf59146fbdecab66aa99f9fe4f78722e3607577a5375d66bd0c913"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.130"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7bc1a1ab1961464eae040d96713baa5a724a8152c1222492465b54322ec508b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "servo-fontconfig"

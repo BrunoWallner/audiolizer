@@ -82,7 +82,7 @@ impl Settings {
             mirroring_checkbox: true,
 
             volume_s: slider::State::new(),
-            volume_sv: config.volume.sqrt(),
+            volume_sv: config.volume.sqrt() * 100.0,
             bar_count_s: slider::State::new(),
             bar_count_sv: config.bar_count as f32,
             fft_res_s: slider::State::new(),
@@ -112,7 +112,7 @@ impl Settings {
                 self.volume_sv = v;
                 if config.volume != v {
                     let config = audioviz::Config {
-                        volume: v.powi(2),
+                        volume: v.powi(2) * 0.01,
                         ..config
                     };
                     self.event_sender.send(audioviz::Event::SendConfig(config)).unwrap();
@@ -252,7 +252,7 @@ impl Settings {
 
         let volume_slider = slider::Slider::new(
             &mut self.volume_s, 
-            1.0..=50.0, 
+            1.0..=150.0, 
             self.volume_sv, 
             SettingMessage::Volume)
             .style(self.theme);
